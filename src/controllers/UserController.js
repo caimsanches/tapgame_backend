@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
+const req = require('express/lib/request');
 
 function fixZero(time) {
     return time < 10 ? `0${time}` : time;
@@ -164,12 +165,26 @@ module.exports = {
         res.json({data: rankingList});
     },
     info: async (req, res) => {
-        const id = req.params.id;
-        const user = await User.findById(id).exec();
+        //const id = req.params.id;
+        //const user = await User.findById(id).exec();
+        const nick = req.params.nick;
+        const user = await User.findOne({nick})
+        .select({nick: 1, avatar: 1, ranking: 1, score: 1, _id: 0})
+        .exec();
         if(!user) {
             res.json({error: 'Usuário inválido!'});
             return;
         }
         res.json({data: user});
+    },
+    hidescore: async (req, res) =>{
+        const user = await User.findOne({ranking: {$gt: 0, $ne:0}})
+        .sort({ranking: 1})
+        .exec();
+        if(!user){
+            res.json(null);
+            return;
+        }
+        res.json(user);
     }
 }
