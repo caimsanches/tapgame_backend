@@ -178,7 +178,7 @@ module.exports = {
         }
         res.json({user});
     },
-    hidescore: async (req, res) =>{
+    highscore: async (req, res) =>{
         const user = await User.findOne({ranking: {$gt: 0, $ne:0}})
         .sort({ranking: 1})
         .exec();
