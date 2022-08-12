@@ -124,7 +124,7 @@ module.exports = {
         const scoreAtual = user.score;
         const id = user._id;
         //const score = parseInt(scoreAtual) + parseInt(newScore);
-        if (newScore > scoreAtual) {           
+        if (newScore > scoreAtual) {
             const userUpdate = await User.findByIdAndUpdate(id, { score: newScore });
             if (!userUpdate) {
                 res.json({ error: 'Usuário invalido!' });
@@ -132,17 +132,17 @@ module.exports = {
             }
             const geraRanking = await User.aggregate([{
                 $setWindowFields: {
-                    sortBy: {score: -1},
+                    sortBy: { score: -1 },
                     output: {
                         ranking: {
                             $rank: {}
                         }
                     },
                 }
-               }]).exec();
+            }]).exec();
             geraRanking.map((user) => {
-                User.updateOne({_id: user._id},{ranking: user.ranking}).exec();
-            });               
+                User.updateOne({ _id: user._id }, { ranking: user.ranking }).exec();
+            });
             res.json({ msg: 'Usuário alterado com sucesso' });
         } else {
             res.json({ msg: 'noob' });
@@ -152,37 +152,37 @@ module.exports = {
 
     },
     ranking: async (req, res) => {
-       const qtd = req.params.qtd;
-       const rankingList = 
-        await User.find({ranking: {$gt: 0, $ne: 0}})
-                  .sort({ranking: 1})
-                  .limit(parseInt(qtd))
-                  .select({"ranking" : 1, "avatar": 1, "nick": 1, "score": 1, "conquistas": 1, "_id": 0})
-                  .exec();
-        if(!rankingList) {
-            res.json({error: 'Erro ao realizar consulta'});
+        const qtd = req.params.qtd;
+        const rankingList =
+            await User.find({ ranking: { $gt: 0, $ne: 0 } })
+                .sort({ ranking: 1 })
+                .limit(parseInt(qtd))
+                .select({ "ranking": 1, "avatar": 1, "nick": 1, "score": 1, "conquistas": 1, "_id": 0 })
+                .exec();
+        if (!rankingList) {
+            res.json({ error: 'Erro ao realizar consulta' });
             return;
         }
-        res.json({data: rankingList});
+        res.json({ data: rankingList });
     },
     info: async (req, res) => {
         //const id = req.params.id;
         //const user = await User.findById(id).exec();
         const nick = req.params.nick;
-        const user = await User.findOne({nick})
-        .select({nick: 1, avatar: 1, ranking: 1, score: 1, _id: 0})
-        .exec();
-        if(!user) {
-            res.json({error: 'Usuário inválido!'});
-            return;
+        let user = await User.findOne({ nick })
+            .select({ nick: 1, avatar: 1, ranking: 1, score: 1, _id: 0 })
+            .exec();
+        if (!user) {
+            const newUser = new User({ avatar: '', nome: '', nick, email: '', password: '', score: 0, ranking: 0, timeGame: '00:00:00', conquistas: [] })
+            user = await newUser.save();
         }
-        res.json({user});
+        res.json({ user });
     },
-    highscore: async (req, res) =>{
-        const user = await User.findOne({ranking: {$gt: 0, $ne:0}})
-        .sort({ranking: 1})
-        .exec();
-        if(!user){
+    highscore: async (req, res) => {
+        const user = await User.findOne({ ranking: { $gt: 0, $ne: 0 } })
+            .sort({ ranking: 1 })
+            .exec();
+        if (!user) {
             res.json(null);
             return;
         }
